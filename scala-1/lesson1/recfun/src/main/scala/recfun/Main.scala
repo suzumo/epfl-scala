@@ -56,25 +56,21 @@ object Main {
    * Exercise 3
    */
     def countChange(money: Int, coins: List[Int]): Int = {
-      var num = 0
+      var num: Int = 0
       var uniqueCoins = List[Int]()
 
-      // this doesn't work cos can't figure out how to append to lists
-      coins.foreach { coin => if (!uniqueCoins.contains(coin)) uniqueCoins.append(coin) }
+      def countChangeR(money: Int, coins: List[Int], i: Int): Int = {
 
-      if (money <= 0) num = 0
-      else {
-        for (i <- 0 to uniqueCoins.length-2) {
-          num = num + countChangeR(money, uniqueCoins, i)
-        }
+        if (money < 0) 0
+        else if (i == coins.length) 0 // there's no more coins to compare
+        else if (money == 0) 1 // perfect change
+        else countChangeR(money - coins(i), coins, i) + countChangeR(money, coins, i+1)       // take/don't take coin(i)
       }
 
-      def countChangeR(money: Int, coins: List[Int], i: Int): Int = money match {
-        case 0 => 1
-        case _ => if (money < 0) 0
-                  else if (i >= coins.length) 0
-                  else countChangeR(money - coins(i), coins, i) + countChangeR(money, coins, i+1)
-      }
-      num
+      coins.foreach { coin => if (!uniqueCoins.contains(coin)) uniqueCoins = coin :: uniqueCoins }
+
+      if (money <= 0) 1
+      else if (coins.isEmpty) 0
+      else countChangeR(money, uniqueCoins, 0)
     }
   }
