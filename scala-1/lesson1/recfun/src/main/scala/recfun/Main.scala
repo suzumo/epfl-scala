@@ -25,26 +25,31 @@ object Main {
    * Exercise 2
    */
     def balance(chars: List[Char]): Boolean = {
+      var openParen = 0
+
+      def parseStr(chars: List[Char]): Boolean = {
+        if (chars.isEmpty) openParen == 0
+        else {
+          chars.head match {
+            case '(' => matchOpenParen(chars.tail)
+            case ')' => matchCloseParen(chars.tail)
+            case _   => parseStr(chars.tail)
+          }
+        }
+      }
 
       def matchOpenParen(chars: List[Char]): Boolean = {
-        if (chars.isEmpty) true
-        else chars.head match {
-          case ')' => false
-          case '(' => matchCloseParen(chars.tail)
-          case _   => matchOpenParen(chars.tail)
-        }
+        openParen = openParen + 1
+        parseStr(chars)
       }
 
       def matchCloseParen(chars: List[Char]): Boolean = {
-        if (chars.isEmpty) false
-        else chars.last match {
-          case '(' => false
-          case ')' => matchOpenParen(chars.dropRight(1))
-          case _   => matchCloseParen(chars.dropRight(1))
-        }
+        openParen = openParen - 1
+        if (openParen < 0) false
+        else parseStr(chars)
       }
 
-      matchOpenParen(chars)
+      parseStr(chars)
     }
   
   /**
@@ -52,10 +57,15 @@ object Main {
    */
     def countChange(money: Int, coins: List[Int]): Int = {
       var num = 0
+      var uniqueCoins = List[Int]()
+
+      // this doesn't work cos can't figure out how to append to lists
+      coins.foreach { coin => if (!uniqueCoins.contains(coin)) uniqueCoins.append(coin) }
+
       if (money <= 0) num = 0
       else {
-        for (i <- 0 to coins.length-2) {
-          num = num + countChangeR(money, coins, i)
+        for (i <- 0 to uniqueCoins.length-2) {
+          num = num + countChangeR(money, uniqueCoins, i)
         }
       }
 
