@@ -18,7 +18,7 @@ object Huffman {
    * present in the leaves below it. The weight of a `Fork` node is the sum of the weights of these
    * leaves.
    */
-    abstract class CodeTree
+  abstract class CodeTree
   case class Fork(left: CodeTree, right: CodeTree, chars: List[Char], weight: Int) extends CodeTree
   case class Leaf(char: Char, weight: Int) extends CodeTree
   
@@ -26,7 +26,7 @@ object Huffman {
   // Part 1: Basics
     def weight(tree: CodeTree): Int = tree match {
       case Leaf(_, w)       => w
-      case Fork(l, r, _, w) => w + weight(l) + weight(r)
+      case Fork(l, r, _, w) => weight(l) + weight(r)
     }
   
     def chars(tree: CodeTree): List[Char] = tree match {
@@ -152,7 +152,9 @@ object Huffman {
    *    the example invocation. Also define the return type of the `until` function.
    *  - try to find sensible parameter names for `xxx`, `yyy` and `zzz`.
    */
-    def until(f: Boolean, yyy: ???)(trees: List[CodeTree]): List[CodeTree] = ???
+    def until(func1: List[CodeTree] => Boolean, func2: List[CodeTree] => List[CodeTree])(trees: List[CodeTree]): List[CodeTree] =
+      if (func1(trees)) trees
+      else until(func1, func2)(func2(trees))
   
   /**
    * This function creates a code tree which is optimal to encode the text `chars`.
@@ -160,7 +162,7 @@ object Huffman {
    * The parameter `chars` is an arbitrary text. This function extracts the character
    * frequencies from that text and creates a code tree based on them.
    */
-    def createCodeTree(chars: List[Char]): CodeTree = ???
+    def createCodeTree(chars: List[Char]): CodeTree = until(singleton, combine)(makeOrderedLeafList(times(chars))).head
   
 
   // Part 3: Decoding
