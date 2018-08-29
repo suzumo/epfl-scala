@@ -26,7 +26,7 @@ object Anagrams {
    *  It is predefined and obtained as a sequence using the utility method `loadDictionary`.
    */
   val dictionary: List[Word] = loadDictionary
-
+//  val dictionary: List[Word] = List("art", "artificial", "i", "cat", "liar", "a", "larc", "fict")
   /** Converts the word into its character occurrence list.
    *
    *  Note: the uppercase and lowercase version of the character are treated as the
@@ -61,6 +61,8 @@ object Anagrams {
 
   /** Returns all the anagrams of a given word. */
   def wordAnagrams(word: Word): List[Word] = dictionaryByOccurrences.getOrElse(wordOccurrences(word), List.empty)
+
+  def occurrenceAnagrams(occurrences: Occurrences): List[Word] = dictionaryByOccurrences.getOrElse(occurrences, List.empty)
 
   /** Returns the list of all subsets of the occurrence list.
    *  This includes the occurrence itself, i.e. `List(('k', 1), ('o', 1))`
@@ -110,9 +112,18 @@ object Anagrams {
    *  Note: the resulting value is an occurrence - meaning it is sorted
    *  and has no zero-entries.
    */
-  def subtract(x: Occurrences, y: Occurrences): Occurrences = ???
+  def subtract(x: Occurrences, y: Occurrences): Occurrences = (x, y) match {
+    case (_, Nil) => x
+    case (Nil, _) => List.empty
+    case (_, _)   => if (x.head._1 == y.head._1) {
+      if (x.head._2 == y.head._2) subtract(x.tail, y.tail)
+      else (x.head._1, x.head._2 - y.head._2) :: subtract(x.tail, y.tail)
+    } else {
+      x.head :: subtract(x.tail, y)
+    }
+  }
 
-  /** Returns a list of all anagram sentences of the given sentence.
+   /** Returns a list of all anagram sentences of the given sentence.
    *
    *  An anagram of a sentence is formed by taking the occurrences of all the characters of
    *  all the words in the sentence, and producing all possible combinations of words with those characters,
@@ -151,6 +162,29 @@ object Anagrams {
    *  so it has to be returned in this list.
    *
    *  Note: There is only one anagram of an empty sentence.
+   *        A sentence is List[Word=String]
    */
-  def sentenceAnagrams(sentence: Sentence): List[Sentence] = ???
+  def sentenceAnagrams(sentence: Sentence): List[Sentence] = (sentenceAnagramsR(List(List.empty), sentenceOccurrences(sentence)))._1
+
+  def sentenceAnagramsR(prefixes: List[Sentence], occurrences: Occurrences): (List[Sentence], Boolean) = occurrences match {
+    case Nil => (prefixes, true)
+    case _ => {
+      val possibleNextCombo = combinations(occurrences)
+      println(possibleNextCombo)
+      for (combination <- possibleNextCombo) {
+        val anaWords = occurrenceAnagrams(combination)
+        println(anaWords)
+        if (!anaWords.isEmpty) {
+          val newPrefixes: List[Sentence] = updatePrefixes(prefixes, anaWords)
+          val (ans, b) = sentenceAnagramsR(newPrefixes, subtract(occurrences, combination))
+        }
+      }
+      (prefixes, false)
+    }
+  }
+
+  def updatePrefixes(prefixes: List[Sentence], words: List[Word]): List[Sentence] = words match {
+    case Nil => prefixes
+    case _   => prefixes.map(_:+words.head) ++ updatePrefixes(prefixes, words.tail)
+  }
 }
