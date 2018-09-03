@@ -164,27 +164,25 @@ object Anagrams {
    *  Note: There is only one anagram of an empty sentence.
    *        A sentence is List[Word=String]
    */
-  def sentenceAnagrams(sentence: Sentence): List[Sentence] = (sentenceAnagramsR(List(List.empty), sentenceOccurrences(sentence)))._1
+  def sentenceAnagrams(sentence: Sentence): List[Sentence] = sentenceAnagramsR(sentenceOccurrences(sentence))._1
 
-  def sentenceAnagramsR(prefixes: List[Sentence], occurrences: Occurrences): (List[Sentence], Boolean) = occurrences match {
-    case Nil => (prefixes, true)
-    case _ => {
-      val possibleNextCombo = combinations(occurrences)
-      println(possibleNextCombo)
-      for (combination <- possibleNextCombo) {
-        val anaWords = occurrenceAnagrams(combination)
-        println(anaWords)
-        if (!anaWords.isEmpty) {
-          val newPrefixes: List[Sentence] = updatePrefixes(prefixes, anaWords)
-          val (ans, b) = sentenceAnagramsR(newPrefixes, subtract(occurrences, combination))
+  def sentenceAnagramsR(occurrences: Occurrences): (List[Sentence], Boolean) = occurrences match {
+    case Nil => (List(List.empty), true)
+    case _   => {
+      val currIter = (combinations(occurrences)).map(x =>
+        (occurrenceAnagrams(x), sentenceAnagramsR(subtract(occurrences, x))) )
+      currIter match {
+        case x if (x.head._1.size > 0 && x.head._2._2) => {
+          (updatePost(x.head._1, x.head._2._1), true)
         }
+        case _ => (List.empty, false)
       }
-      (prefixes, false)
     }
   }
 
-  def updatePrefixes(prefixes: List[Sentence], words: List[Word]): List[Sentence] = words match {
-    case Nil => prefixes
-    case _   => prefixes.map(_:+words.head) ++ updatePrefixes(prefixes, words.tail)
+  def updatePost(words: List[Word], post: List[Sentence]): List[Sentence] = (words, post) match {
+    case (w, _) if w.isEmpty => List.empty
+    case (_, ps) if ps.isEmpty => List(words)
+    case _   => post.map(x => words.head+:x) ++ updatePost(words.tail, post)
   }
 }
