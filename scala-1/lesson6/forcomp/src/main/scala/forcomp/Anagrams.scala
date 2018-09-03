@@ -164,25 +164,38 @@ object Anagrams {
    *  Note: There is only one anagram of an empty sentence.
    *        A sentence is List[Word=String]
    */
-  def sentenceAnagrams(sentence: Sentence): List[Sentence] = sentenceAnagramsR(sentenceOccurrences(sentence))._1
-
-  def sentenceAnagramsR(occurrences: Occurrences): (List[Sentence], Boolean) = occurrences match {
-    case Nil => (List(List.empty), true)
-    case _   => {
-      val currIter = (combinations(occurrences)).map(x =>
-        (occurrenceAnagrams(x), sentenceAnagramsR(subtract(occurrences, x))) )
-      currIter match {
-        case x if (x.head._1.size > 0 && x.head._2._2) => {
-          (updatePost(x.head._1, x.head._2._1), true)
-        }
-        case _ => (List.empty, false)
-      }
+  def sentenceAnagrams(sentence: Sentence): List[Sentence] = {
+    def iter(occurrences: Occurrences): List[Sentence] = {
+      if (occurrences.isEmpty) List(Nil)
+      else for {
+        combination <- combinations( occurrences )
+        word <- dictionaryByOccurrences getOrElse (combination, Nil)
+        sentence <- iter( subtract(occurrences,wordOccurrences(word)) )
+        if !combination.isEmpty
+      } yield word :: sentence
     }
+
+    iter( sentenceOccurrences(sentence) )
   }
 
-  def updatePost(words: List[Word], post: List[Sentence]): List[Sentence] = (words, post) match {
-    case (w, _) if w.isEmpty => List.empty
-    case (_, ps) if ps.isEmpty => List(words)
-    case _   => post.map(x => words.head+:x) ++ updatePost(words.tail, post)
-  }
+//  def sentenceAnagramsR(occurrences: Occurrences): (List[Sentence], Boolean) = occurrences match {
+//    case Nil => (List(List.empty), true)
+//    case _   => {
+//      val currOccur = combinations(occurrences)
+//      val currIter = currOccur.map(x => occurrenceAnagrams(x))
+//      val nextIter = currOccur.map(x => sentenceAnagramsR(subtract(occurrences, x)))
+//      var sentenceList = List(List.empty)
+//      for (curr <- currIter; next <- nextIter) {
+//        if (next._2 && curr.size > 0) sentenceList ++ updatePost(curr, next._1)
+//      }
+//      if (sentenceList.isEmpty) (List(List.empty), false)
+//      else (sentenceList, true)
+//    }
+//  }
+//
+//  def updatePost(words: List[Word], post: List[Sentence]): List[Sentence] = (words, post) match {
+//    case (w, _) if w.isEmpty => List.empty
+//    case (_, ps) if ps.isEmpty => List(words)
+//    case _   => post.map(x => words.head+:x) ++ updatePost(words.tail, post)
+//  }
 }
